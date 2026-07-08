@@ -8,6 +8,12 @@ import { rateLimiter } from './middleware/rate.limiter';
 
 const app = express();
 
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://your-frontend-project.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
