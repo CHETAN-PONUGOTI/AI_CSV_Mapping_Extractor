@@ -1,90 +1,54 @@
+import { CrmLeadSchema, AiBatchResponseSchema } from '../domain/crm.schema';
 import { CsvParserService } from './csv.parser.service';
 import { GeminiService } from '../infrastructure/ai/gemini.service';
-import { prisma } from '../infrastructure/database/prisma.client';
-import { chunkArray } from '../utils/chunker';
-import { CrmLeadSchema } from '../domain/crm.schema';
-import { UploadPreviewResponse } from '../domain/types';
+import { logger } from '../utils/logger';
 
 export class ImportManager {
-  static async createPreviewBatch(buffer: Buffer, fileName: string): Promise<UploadPreviewResponse> {
-    const rawRows = await CsvParserService.parseBuffer(buffer);
-    
-    const batch = await prisma.importBatch.create({
-      data: { fileName, totalRows: rawRows.length, status: 'PENDING_CONFIRMATION' }
-    });
+  async processImport(fileBuffer: Buffer) {
+    try {
+      // 1. Parse CSV
+      const rawData = await CsvParserService.parseBuffer(fileBuffer);
+      
+      // 2. Map data using AI
+      const aiResponse = await GeminiService.extractBatch(rawData);
+      
+      // 3. Validate AI response
+      const parsedData = AiBatchResponseSchema.safeParse(aiResponse);
+      
+      if (!parsedData.success) {
+        logger.error("AI response failed schema validation", parsedData.error.format());
+        throw new Error("Invalid format returned from AI mapping");
+      }
 
-    const recordsToInsert = rawRows.map(row => ({
-      batchId: batch.id,
-      originalData: JSON.stringify(row),
-      status: 'PENDING'
-    }));
+      const results = {
+        successCount: 0,
+        skippedCount: 0,
+        data: [] as any[]
+      };
 
-    await prisma.leadRecord.createMany({ data: recordsToInsert });
-
-    return {
-      batchId: batch.id,
-      totalRows: rawRows.length,
-      previewRows: rawRows.slice(0, 5) 
-    };
-  }
-
-  static async processConfirmedBatch(batchId: string): Promise<void> {
-    await prisma.importBatch.update({
-      where: { id: batchId },
-      data: { status: 'PROCESSING' }
-    });
-
-    const pendingRecords = await prisma.leadRecord.findMany({
-      where: { batchId, status: 'PENDING' }
-    });
-
-    const chunks = chunkArray(pendingRecords, 50); 
-    let processed = 0;
-    let skipped = 0;
-
-    for (const chunk of chunks) {
-      try {
-        const rawDataArray = chunk.map(r => JSON.parse(r.originalData));
-        const extracted = await GeminiService.extractBatch(rawDataArray);
+      // 4. Validate each record with detailed logging
+      for (const record of parsedData.data.records) {
+        const validation = CrmLeadSchema.safeParse(record);
         
-        for (let i = 0; i < chunk.length; i++) {
-          const dbRecord = chunk[i];
-          const mapped = extracted[i];
-          const validation = CrmLeadSchema.safeParse(mapped);
-          
-          if (validation.success) {
-            await prisma.leadRecord.update({
-              where: { id: dbRecord.id },
-              data: { parsedData: JSON.stringify(validation.data), status: 'SUCCESS' }
-            });
-            processed++;
-          } else {
-            await prisma.leadRecord.update({
-              where: { id: dbRecord.id },
-              data: { status: 'SKIPPED', errorMessage: 'Validation failed or missing key fields' }
-            });
-            skipped++;
-          }
-        }
-      } catch (error) {
-        for (const dbRecord of chunk) {
-          await prisma.leadRecord.update({
-            where: { id: dbRecord.id },
-            data: { status: 'FAILED', errorMessage: error instanceof Error ? error.message : 'AI Error' }
+        if (validation.success) {
+          results.successCount++;
+          results.data.push(validation.data);
+        } else {
+          results.skippedCount++;
+          // CRITICAL: Log exact Zod errors to Render backend logs
+          logger.warn("Skipping invalid record:", {
+            error: validation.error.format(),
+            record: record
           });
-          skipped++;
         }
       }
 
-      await prisma.importBatch.update({
-        where: { id: batchId },
-        data: { processedRows: processed, skippedRows: skipped }
-      });
+      return results;
+    } catch (error) {
+      logger.error("Import process failed:", error);
+      throw error;
     }
-
-    await prisma.importBatch.update({
-      where: { id: batchId },
-      data: { status: 'COMPLETED' }
-    });
   }
 }
+
+export const importManager = new ImportManager();

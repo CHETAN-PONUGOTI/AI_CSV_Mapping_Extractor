@@ -16,9 +16,10 @@ export const DataSourceEnum = z.enum([
 ]);
 
 export const CrmLeadSchema = z.object({
-  created_at: z.string().datetime().optional(),
+  created_at: z.string().optional(), // Removed .datetime() to be more forgiving
   name: z.string().optional(),
-  email: z.string().email().optional(),
+  // Use .email().or(z.literal("")).optional() to allow empty strings
+  email: z.string().email().optional().or(z.literal("")), 
   country_code: z.string().optional(),
   mobile_without_country_code: z.string().optional(),
   company: z.string().optional(),
@@ -31,8 +32,6 @@ export const CrmLeadSchema = z.object({
   data_source: DataSourceEnum.optional(),
   possession_time: z.string().optional(),
   description: z.string().optional(),
-}).refine(data => data.email || data.mobile_without_country_code, {
-  message: "Record must contain either email or mobile number",
 });
 
 export const AiBatchResponseSchema = z.object({
