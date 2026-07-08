@@ -16,7 +16,7 @@ app.use(cors({
     'https://ai-csv-mapping-extractor-cm88.vercel.app/'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'expires'],
+  allowedHeaders: ['*'],
   credentials: true
 }));
 
