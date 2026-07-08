@@ -8,14 +8,18 @@ import { rateLimiter } from './middleware/rate.limiter';
 
 const app = express();
 
-app.use(helmet());
-
+// Apply CORS exactly once with explicit configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://ai-csv-mapping-extractor.vercel.app/'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    'http://localhost:3000', 
+    'https://ai-csv-mapping-extractor.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined'));
