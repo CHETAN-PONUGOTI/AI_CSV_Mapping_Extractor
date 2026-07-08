@@ -9,7 +9,7 @@ import { rateLimiter } from './middleware/rate.limiter';
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://your-frontend-project.vercel.app'],
+  origin: ['http://localhost:3000', 'https://ai-csv-mapping-extractor.vercel.app/'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
