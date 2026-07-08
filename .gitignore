@@ -1,0 +1,30 @@
+# --- Node.js ---
+node_modules/
+dist/
+build/
+*.log
+
+# --- Next.js ---
+.next/
+out/
+next-env.d.ts
+
+# --- Environment Variables (CRITICAL) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Database & Sensitive Files ---
+# Ignore Prisma local database files
+prisma/*.db
+prisma/*.db-journal
+
+# Ignore IDE settings
+.vscode/
+.idea/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db

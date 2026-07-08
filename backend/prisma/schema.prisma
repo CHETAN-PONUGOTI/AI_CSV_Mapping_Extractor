@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ImportBatch {
+  id            String       @id @default(uuid())
+  fileName      String
+  totalRows     Int          @default(0)
+  processedRows Int          @default(0)
+  skippedRows   Int          @default(0)
+  status        String       @default("PENDING_CONFIRMATION")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  records       LeadRecord[]
+}
+
+model LeadRecord {
+  id            String      @id @default(uuid())
+  batchId       String
+  batch         ImportBatch @relation(fields: [batchId], references: [id])
+  originalData  String
+  parsedData    String?
+  status        String      @default("PENDING")
+  errorMessage  String?
+  createdAt     DateTime    @default(now())
+}

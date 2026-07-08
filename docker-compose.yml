@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqlite_data:/app/data # Map volume to a dedicated data folder
+    env_file:
+      - ./backend/.env # Loads all variables from your .env file
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/dev.db # Point to the mounted volume
+      - PORT=8080
+      - MAX_UPLOAD_SIZE_MB=50
+    # No need to explicitly list GEMINI_API_KEY here if it's in .env
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  sqlite_data:
