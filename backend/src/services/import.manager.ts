@@ -6,14 +6,14 @@ import { logger } from '../utils/logger';
 export class ImportManager {
   async processImport(fileBuffer: Buffer) {
     try {
-      // 1. Parse CSV
+      // 1. Parse CSV using your static method
       const rawData = await CsvParserService.parseBuffer(fileBuffer);
       
-      // 2. Map data using AI
-      const aiResponse = await GeminiService.extractBatch(rawData);
+      // 2. Map data using AI -> FIXED METHOD NAME to extractBatch
+      const aiResponseArray = await GeminiService.extractBatch(rawData);
       
-      // 3. Validate AI response
-      const parsedData = AiBatchResponseSchema.safeParse(aiResponse);
+      // 3. Validate AI response -> FIXED STRUCTURE to match { records: [] }
+      const parsedData = AiBatchResponseSchema.safeParse({ records: aiResponseArray });
       
       if (!parsedData.success) {
         logger.error("AI response failed schema validation", parsedData.error.format());
