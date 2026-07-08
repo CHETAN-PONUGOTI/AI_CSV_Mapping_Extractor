@@ -9,7 +9,7 @@ build/
 out/
 next-env.d.ts
 
-# --- Environment Variables (CRITICAL) ---
+# --- Environment Variables---
 .env
 .env.local
 .env.development.local
