@@ -6,15 +6,14 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - sqlite_data:/app/data # Map volume to a dedicated data folder
+      - sqlite_data:/app/data 
     env_file:
-      - ./backend/.env # Loads all variables from your .env file
+      - ./backend/.env 
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:/app/data/dev.db # Point to the mounted volume
+      - DATABASE_URL=file:/app/data/dev.db 
       - PORT=8080
       - MAX_UPLOAD_SIZE_MB=50
-    # No need to explicitly list GEMINI_API_KEY here if it's in .env
 
   frontend:
     build:
