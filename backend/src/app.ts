@@ -12,7 +12,8 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:3000', 
-    'https://ai-csv-mapping-extractor.vercel.app'
+    'https://ai-csv-mapping-extractor.vercel.app',
+    'https://ai-csv-mapping-extractor-cm88.vercel.app/'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
