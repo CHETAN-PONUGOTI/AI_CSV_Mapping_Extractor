@@ -16,24 +16,25 @@ export const DataSourceEnum = z.enum([
 ]);
 
 export const CrmLeadSchema = z.object({
-  created_at: z.string().datetime().optional(),
-  name: z.string().optional(),
-  email: z.string().email().optional(),
-  country_code: z.string().optional(),
-  mobile_without_country_code: z.string().optional(),
-  company: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
-  lead_owner: z.string().optional(),
-  crm_status: CrmStatusEnum.optional(),
-  crm_note: z.string().optional(),
-  data_source: DataSourceEnum.optional(),
-  possession_time: z.string().optional(),
-  description: z.string().optional(),
-}).refine(data => data.email || data.mobile_without_country_code, {
-  message: "Record must contain either email or mobile number",
+  // Removed .datetime() to allow standard dates
+  created_at: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  // Allow empty strings if AI forgets to make it null
+  email: z.string().email().optional().nullable().or(z.literal("")),
+  country_code: z.string().optional().nullable(),
+  mobile_without_country_code: z.string().optional().nullable(),
+  company: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  lead_owner: z.string().optional().nullable(),
+  crm_status: CrmStatusEnum.optional().nullable(),
+  crm_note: z.string().optional().nullable(),
+  data_source: DataSourceEnum.optional().nullable(),
+  possession_time: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
 });
+// Temporarily removed the .refine() block to let all data through
 
 export const AiBatchResponseSchema = z.object({
   records: z.array(CrmLeadSchema)

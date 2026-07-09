@@ -59,6 +59,8 @@ export class ImportManager {
             });
             processed++;
           } else {
+            console.error(`Row ${i} Validation Failed:`, JSON.stringify(validation.error.format(), null, 2));
+            
             await prisma.leadRecord.update({
               where: { id: dbRecord.id },
               data: { status: 'SKIPPED', errorMessage: 'Validation failed or missing key fields' }

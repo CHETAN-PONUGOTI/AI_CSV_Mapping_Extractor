@@ -9,7 +9,10 @@ export class GeminiService {
     try {
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-2.5-flash',
-        generationConfig: { responseMimeType: "application/json" }
+        generationConfig: { 
+          responseMimeType: "application/json",
+          temperature: 0
+        }
       });
 
       const prompt = `
