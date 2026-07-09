@@ -16,10 +16,8 @@ export const DataSourceEnum = z.enum([
 ]);
 
 export const CrmLeadSchema = z.object({
-  // Removed .datetime() to allow standard dates
   created_at: z.string().optional().nullable(),
   name: z.string().optional().nullable(),
-  // Allow empty strings if AI forgets to make it null
   email: z.string().email().optional().nullable().or(z.literal("")),
   country_code: z.string().optional().nullable(),
   mobile_without_country_code: z.string().optional().nullable(),
@@ -33,8 +31,15 @@ export const CrmLeadSchema = z.object({
   data_source: DataSourceEnum.optional().nullable(),
   possession_time: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
+}).refine((data) => {
+  const hasEmail = typeof data.email === 'string' && data.email.trim().length > 0;
+  
+  const hasPhone = typeof data.mobile_without_country_code === 'string' && data.mobile_without_country_code.trim().length > 0;
+  
+  return hasEmail || hasPhone;
+}, {
+  message: "Record must contain either a valid email or a mobile number",
 });
-// Temporarily removed the .refine() block to let all data through
 
 export const AiBatchResponseSchema = z.object({
   records: z.array(CrmLeadSchema)
